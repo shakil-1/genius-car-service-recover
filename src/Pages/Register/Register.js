@@ -17,8 +17,7 @@ const Register = () => {
         user,
         loading,
         error,
-    ] = useCreateUserWithEmailAndPassword(auth);
-    const [sendEmailVerification, sending, error1] = useSendEmailVerification(auth);
+    ] = useCreateUserWithEmailAndPassword(auth, { sendEmailVerification: true });
     const [updateProfile, updating, error2] = useUpdateProfile(auth);
     const navigate = useNavigate();
     if (user) {
@@ -33,15 +32,12 @@ const Register = () => {
         const name = event.target.name.value;
         const email = event.target.email.value;
         const password = event.target.password.value;
-        console.log(name, email, password);
-        // const agree = event.target.trems.checked;
+        // const agree = event.target.terms.checked;
 
         await createUserWithEmailAndPassword(email, password);
-        await sendEmailVerification();
-        alert('Sent email');
         await updateProfile({ displayName: name });
         console.log('Updated profile');
-        navigate('/home')
+        navigate('/home');
     }
     return (
         <div className='w-50 mx-auto  mt-3 ' >
@@ -63,7 +59,7 @@ const Register = () => {
                 <Form.Group className="mb-3 " controlId="formBasicCheckbox">
                     <Form.Check className={`${!agree ? '' : 'text-danger'}`} onClick={() => setAgree(!agree)} type="checkbox" name='trems' label="Accpet Genius Car Terms and Conditions" />
                 </Form.Group>
-                <Button onClick={() => createUserWithEmailAndPassword(auth)} className='w-50 d-block mx-auto' disabled={!agree} variant="primary" type="submit">
+                <Button className='w-50 d-block mx-auto' disabled={!agree} variant="primary" type="submit" >
                     Register
                 </Button>
             </Form>
