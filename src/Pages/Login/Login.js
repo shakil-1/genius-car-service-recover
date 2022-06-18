@@ -1,8 +1,12 @@
 import React, { useRef } from 'react';
-import { Button, Form } from 'react-bootstrap';
-import { useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth';
+import { Button, Form, ToastContainer } from 'react-bootstrap';
+import { useSendPasswordResetEmail, useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import auth from '../../Firebase.init';
+import Loading from '../Shared/Loading/Loading';
+import SocilLogin from './SocilLogin/SocilLogin';
+import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 
 const Login = () => {
     const location = useLocation();
@@ -16,20 +20,30 @@ const Login = () => {
     const emailRef = useRef('');
     const passwordRef = useRef('');
     const navigate = useNavigate();
+    let errorElement;
+    const [sendPasswordResetEmail, sending] = useSendPasswordResetEmail(auth);
     if (user) {
         navigate(from, { replace: true });
     }
-    if (error) {
-        return (
-            <div>
-                <p>Error: {error.message}</p>
-            </div>
-        );
-    }
-    if (loading) {
-        return <p>Loading...</p>;
+    if (error || sending) {
+        errorElement = <div>
+            <p className='text-danger'>Error: {error?.message}</p>
+        </div>
     }
 
+    if (loading) {
+        return <Loading></Loading>
+    }
+    const resetPassword = async () => {
+        const email = emailRef.current.value;
+        if (email) {
+            await sendPasswordResetEmail(email);
+            toast('Send password reset, please check your email')
+        }
+        else {
+            toast('Please enter your email address!')
+        }
+    }
     const handelSubmitLogin = event => {
         event.preventDefault();
         const email = emailRef.current.value;
@@ -37,29 +51,29 @@ const Login = () => {
         signInWithEmailAndPassword(email, password);
     }
     return (
-        <div className='w-50 mx-auto border mt-3 p-2' >
+        <div className='w-50 mx-auto  mt-3 ' >
             <h1 className='text-center text-primary '>Please Login</h1>
             <Form onSubmit={handelSubmitLogin}>
                 <Form.Group className="mb-3" controlId="formBasicEmail">
-                    <Form.Label>Email address</Form.Label>
+
                     <Form.Control ref={emailRef} type="email" placeholder="Enter email" required />
-                    <Form.Text className="text-muted">
-                        We'll never share your email with anyone else.
-                    </Form.Text>
                 </Form.Group>
 
                 <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label>Password</Form.Label>
-                    <Form.Control ref={passwordRef} type="password" placeholder="Password" required />
+
+                    <Form.Control type="password" placeholder="Password" required />
                 </Form.Group>
-                <Form.Group className="mb-3" controlId="formBasicCheckbox">
-                    <Form.Check type="checkbox" label="Check me out" />
-                </Form.Group>
+
                 <Button variant="primary" type="submit">
                     Login
                 </Button>
+                {errorElement}
             </Form>
-            <p>New to genius car? <span className='text-primary'><Link to="/register">Please Register</Link></span></p>
+
+            <p>New to genius car? <span className='text-primary'><Link to="/register" className='text-decoration-none'>Please Register</Link></span></p>
+            <p>Forget Pssword? <span className='text-primary'><button className='text-decoration-none btn btn-link' onClick={resetPassword}>Reset password</button></span></p>
+            <SocilLogin></SocilLogin>
+            <ToastContainer />
         </div>
     );
 };
